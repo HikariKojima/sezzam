@@ -12,11 +12,11 @@
 </script>
 
 <div
-  class=" flex items-center content-center gap-2.5 rounded-4xl my-2 py-2 px-4 max-w-fit mx-auto outline-2 outline-[#7B7B7B]"
+  class=" flex items-center content-center gap-2.5 rounded-4xl my-2 py-2 px-4 max-w-fit mx-auto outline-2 outline-[#7B7B7B] hidden"
 >
   <div class="flex items-center content-center flex-row w-xs gap-2.5 max-w-fit">
     <input
-      class="border-none px-4 py-2 outline-none"
+      class="border-none px-4 py-2 outline-none hidden"
       type="search"
       bind:value={query}
       placeholder="Pretrazite..."
