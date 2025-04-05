@@ -23,29 +23,31 @@
   <Carousel.Content class="-ml-4">
     {#each products as product (product.id)}
       <Carousel.Item
-        class="pl-4 basis-full sm-basis-1/2 md:basis-1/3 lg:basis-1/4"
+        class="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
       >
-        <Card.Root class="h-full flex flex-col">
-          <Card.Header class="flex-1">
-            <div class="aspect-video overflow-hidden">
-              <img
-                class="w-full h-full object-cover"
-                src={product.thumbnail}
-                alt={product.description}
-              />
-            </div>
-            <Card.Title class="mt-4 line-clamp-2">{product.title}</Card.Title>
-            <Card.Description>{product.title}</Card.Description>
-          </Card.Header>
-          <Card.Content class="mt-auto p-4">
-            <div class="flex items-center content-center flex-col p-1">
-              <p class="text-red-500 font-bold text-2xl">
-                {product.price}km/m2
-              </p>
-              <p class="line-through">{product.price}km/m2</p>
-            </div>
-          </Card.Content>
-        </Card.Root>
+        <a class="cursor-pointer" href="#">
+          <Card.Root class="h-full flex flex-col">
+            <Card.Header class="flex-1">
+              <div class="aspect-video overflow-hidden">
+                <img
+                  class="w-full h-full object-cover"
+                  src={product.thumbnail}
+                  alt={product.description}
+                />
+              </div>
+              <Card.Title class="mt-4 line-clamp-2">{product.title}</Card.Title>
+              <Card.Description>{product.title}</Card.Description>
+            </Card.Header>
+            <Card.Content class="mt-auto p-4">
+              <div class="flex items-center content-center flex-col p-1">
+                <p class="text-red-500 font-bold text-2xl">
+                  {product.price}km/m2
+                </p>
+                <p class="line-through">{product.price}km/m2</p>
+              </div>
+            </Card.Content>
+          </Card.Root>
+        </a>
       </Carousel.Item>
     {/each}
   </Carousel.Content>
