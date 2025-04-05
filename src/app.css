@@ -64,6 +64,20 @@
   }
 }
 
+@theme {
+  --font-poppins: Poppins, sans-serif;
+  --poppins-light: 300;
+  --poppins-semibold: 600;
+  --poppins-bold: 700;
+}
+
+*,
+*::before,
+*::after {
+  font-family: var(--font-poppins);
+  font-weight: 400;
+}
+
 @layer base {
   * {
     @apply border-border;

@@ -1,5 +1,6 @@
 <script lang="ts">
   import SearchBarMobile from "./headerComponents/searchBarMobile.svelte";
+  import truckIcon from "$lib/assets/Truck.svg";
 </script>
 
 <header>
@@ -9,7 +10,7 @@
     <div class="basket">
       <p>Korpa</p>
       <div class="basket-cnt">
-        <img src="$lib/assets/Truck.svg" alt="icon of a truck" />
+        <img src={truckIcon} alt="icon of a truck" />
         <span>1</span>
       </div>
     </div>
