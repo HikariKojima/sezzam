@@ -9,9 +9,7 @@
   }>;
 </script>
 
-<h2 class="font-bold text-2xl text-center my-4 hidden">
-  Pogledajte Kategorije
-</h2>
+<h2 class="font-bold text-2xl text-center mb-10">Pogledajte Kategorije</h2>
 
 <Carousel.Root
   class=" w-full max-w-sm md:max-w-3xl mx-auto "
@@ -22,13 +20,11 @@
 >
   <Carousel.Content class="-ml-4">
     {#each categories as category (category.id)}
-      <Carousel.Item
-        class="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
-      >
+      <Carousel.Item class="pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4">
         <a class="cursor-pointer" href="#">
           <Card.Root class="h-full flex flex-col">
             <Card.Header class="flex-1">
-              <div class="aspect-video overflow-hidden bg-black">
+              <div class="aspect-square overflow-hidden bg-black">
                 <img
                   class="w-full h-full object-cover"
                   src={category.img}

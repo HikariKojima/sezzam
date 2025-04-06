@@ -4,7 +4,7 @@
 </script>
 
 <nav class="flex items-center justify-between p-8 text-white">
-  <a href="#">Sezzam</a>
+  <a class="text-xl" href="#">Sezzam</a>
   <div>
     <SearchBarMobile></SearchBarMobile>
     <div class="basket-cnt flex items-center justify-center flex-row gap-2">
