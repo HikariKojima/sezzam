@@ -9,7 +9,9 @@
   }>;
 </script>
 
-<h2 class="font-bold text-2xl text-center mb-4 mt-4">Pogledajte Kategorije</h2>
+<h2 class="font-bold text-2xl text-center my-4 hidden">
+  Pogledajte Kategorije
+</h2>
 
 <Carousel.Root
   class=" w-full max-w-sm md:max-w-3xl mx-auto "
@@ -33,8 +35,7 @@
                   alt={category.name}
                 />
               </div>
-              <Card.Title class="mt-4 line-clamp-2 mb-4"
-                >{category.name}</Card.Title
+              <Card.Title class="my-4 line-clamp-2 ">{category.name}</Card.Title
               >
             </Card.Header>
           </Card.Root>

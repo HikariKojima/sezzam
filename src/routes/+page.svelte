@@ -26,14 +26,24 @@
   ];
 </script>
 
-<HeaderMobile></HeaderMobile>
+<header
+  class="bg-[rgba(0,0,0,0.5)] bg-[url($lib/assets/hero.png)] bg-no-repeat bg-cover bg-blend-soft-light min-h-[70vh]"
+>
+  <HeaderMobile></HeaderMobile>
 
-<main>
-  <section class="hero">
-    <h1>Uštedite do 30% na odabrane artikle</h1>
-    <button class="cta"><a href="#">Odabrani artikli</a></button>
+  <section class="hero flex items-center justify-center flex-col">
+    <h1
+      class="text-center text-2xl font-semibold mb-6 text-white mt-[20vh] px-6"
+    >
+      Uštedite do 30% na odabrane artikle
+    </h1>
+    <button class="cta mb-12 py-4 px-8 bg-[#EC5800] text-white"
+      ><a href="#">Odabrani artikli</a></button
+    >
   </section>
-  <div class="mx-auto ml-12">
+</header>
+<main>
+  <div class="mx-auto">
     <ActionCarousel products={data.products}></ActionCarousel>
   </div>
   <CategoryCarousel {categories}></CategoryCarousel>

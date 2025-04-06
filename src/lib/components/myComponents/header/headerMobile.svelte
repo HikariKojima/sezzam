@@ -3,16 +3,16 @@
   import truckIcon from "$lib/assets/Truck.svg";
 </script>
 
-<header>
-  <nav>
-    <a href="#">Sezzam</a>
+<nav class="flex items-center justify-between p-8 text-white">
+  <a href="#">Sezzam</a>
+  <div>
     <SearchBarMobile></SearchBarMobile>
-    <div class="basket">
+    <div class="basket-cnt flex items-center justify-center flex-row gap-2">
       <p>Korpa</p>
-      <div class="basket-cnt">
+      <div class="flex items-center justify-center">
         <img src={truckIcon} alt="icon of a truck" />
-        <span>1</span>
+        <span class="font-bold">1</span>
       </div>
     </div>
-  </nav>
-</header>
+  </div>
+</nav>

@@ -12,7 +12,7 @@
   }>;
 </script>
 
-<h2 class="font-bold text-2xl text-center mb-4">Aktuelne Akcije</h2>
+<h2 class="font-bold text-2xl text-center mb-6 mt-2">Aktuelne Akcije</h2>
 <Carousel.Root
   class=" w-full max-w-sm md:max-w-3xl mx-auto "
   opts={{
