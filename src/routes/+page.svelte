@@ -28,7 +28,6 @@
 </script>
 
 <header>
-  <div class="bg-white">aaa</div>
   <div
     class="bg-[rgba(0,0,0,0.5)] bg-[url($lib/assets/hero.svg)] bg-no-repeat bg-cover bg-blend-soft-light min-h-[70vh] mb-12"
   >
