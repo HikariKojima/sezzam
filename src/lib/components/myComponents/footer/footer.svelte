@@ -1,5 +1,5 @@
 <footer
-  class="bg-[#EC5800] flex items-center justify-center flex-col p-12 text-center text-white"
+  class="bg-[#EC5800] flex items-center justify-center flex-col p-12 text-center text-white mt-40"
 >
   <nav>
     <ul class="flex gap-4 flex-col items-center justify-center">

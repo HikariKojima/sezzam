@@ -12,9 +12,9 @@
 </script>
 
 <div
-  class=" flex items-center content-center gap-2.5 rounded-4xl my-2 py-2 px-4 max-w-fit mx-auto outline-2 outline-[#7B7B7B] hidden"
+  class="gap-2.5 rounded-3xl my-2 py-2 px-2 mx-auto outline-2 outline-[#7B7B7B]"
 >
-  <div class="flex items-center content-center flex-row w-xs gap-2.5 max-w-fit">
+  <div class="flex items-center justify-between flex-row max-w-fit">
     <input
       class="border-none px-4 py-2 outline-none hidden"
       type="search"
@@ -22,7 +22,7 @@
       placeholder="Pretrazite..."
     />
     <img
-      class="cursor-pointer"
+      class="cursor-pointer mr-8"
       src={searchIcon}
       alt="icon of a magnifying glass"
     />

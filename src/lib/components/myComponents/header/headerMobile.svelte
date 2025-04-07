@@ -5,7 +5,7 @@
 
 <nav class="flex items-center justify-between p-8 text-white">
   <a class="text-xl" href="#">Sezzam</a>
-  <div>
+  <div class="flex items-center justify-center">
     <SearchBarMobile></SearchBarMobile>
     <div class="basket-cnt flex items-center justify-center flex-row gap-2">
       <p>Korpa</p>
