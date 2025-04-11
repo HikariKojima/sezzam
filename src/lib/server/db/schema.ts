@@ -115,10 +115,6 @@ export const session = pgTable("session", {
     withTimezone: true,
     mode: "date",
   }).notNull(),
-  lastActivity: timestamp("lastActivity", {
-    withTimezone: true,
-    mode: "date",
-  }).notNull(),
 });
 
 export const orderStatusHistory = pgTable("order_status_history", {
