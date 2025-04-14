@@ -11,6 +11,7 @@ import {
   index,
   check,
   uniqueIndex,
+  numeric,
 } from "drizzle-orm/pg-core";
 
 export const customers = pgTable(
@@ -51,34 +52,15 @@ export const orders = pgTable("orders", {
   phoneNumber: text("phone_number").notNull(),
 });
 
-export const cart = pgTable("cart", {
-  id: serial("id").primaryKey(),
-  customerID: text("customer_id")
-    .notNull()
-    .references(() => customers.id),
-  sessionID: text("session_id").references(() => session.id),
-  createdAtCart: timestamp("created_at", {
-    withTimezone: true,
-    mode: "date",
-  }),
-  updatedAt: timestamp("updated_at", {
-    withTimezone: true,
-    mode: "date",
-  }),
-  totalAmount: decimal("total_amount", { precision: 12, scale: 2 }).notNull(),
-  status: text("status").notNull().default("active"),
-  product_id: integer("product_id")
-    .notNull()
-    .references(() => products.id),
-});
-
 export const products = pgTable(
   "products",
   {
-    id: integer("id").primaryKey(),
+    id: serial("id").primaryKey(),
     name: text("name").notNull().unique(),
     description: text("description").notNull(),
-    price: decimal("price", { precision: 12, scale: 2 }).notNull(),
+    price: decimal("price", { precision: 12, scale: 2 })
+      .notNull()
+      .$type<number>(),
     imageID: integer("image_id").notNull(),
     categoryID: integer("category_id")
       .notNull()
@@ -99,6 +81,30 @@ export const products = pgTable(
   ]
 );
 
+export const cart = pgTable("cart", {
+  id: serial("id").primaryKey(),
+  customerID: text("customer_id")
+    .notNull()
+    .references(() => customers.id),
+  sessionID: text("session_id").references(() => session.id),
+  createdAtCart: timestamp("created_at", {
+    withTimezone: true,
+    mode: "date",
+  }),
+  updatedAt: timestamp("updated_at", {
+    withTimezone: true,
+    mode: "date",
+  }),
+  totalAmount: numeric("total_amount", {
+    precision: 12,
+    scale: 2,
+  }).notNull(),
+  status: text("status").notNull().default("active"),
+  product_id: integer("product_id")
+    .notNull()
+    .references(() => products.id),
+});
+
 export const cartProducts = pgTable(
   "cart_products",
   {
@@ -114,7 +120,7 @@ export const cartProducts = pgTable(
 );
 
 export const categories = pgTable("categories", {
-  id: integer("id").primaryKey(),
+  id: serial("id").primaryKey(),
   name: text("name").notNull(),
   imageURL: text("image").notNull(),
   slug: text("slug").notNull().unique(),

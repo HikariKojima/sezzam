@@ -5,11 +5,10 @@ import {
   setSessionTokenCookie,
   deleteSessionTokenCookie,
 } from "$lib/server/auth";
-import { db } from "$lib/server/db";  
+import { db } from "$lib/server/db";
 import { products } from "$lib/server/db/schema";
 
 type newProduct = typeof products.$inferInsert;
-
 
 export const load: PageServerLoad = async (event) => {
   const token = event.cookies.get("session") ?? null;
@@ -41,8 +40,8 @@ export const actions: Actions = {
       name,
       description,
       price,
-      category,
-      images,
+      imageID,
+      categoryID,
       featured,
       stock,
       barcode,
@@ -50,25 +49,25 @@ export const actions: Actions = {
       name: string;
       description: string;
       price: number;
-      category: string;
-      images: string;
       featured: boolean;
+      categoryID: number;
+      imageID: number;
       stock: number;
       barcode: string;
     };
     try {
       await db.insert(products).values({
-        name : name,
-        description : description,
+        name: name,
+        description: description,
+        imageID: imageID,
+        categoryID: categoryID,
         price: price,
-        category: category,
-        images: images,
         featured: featured,
         stock: stock,
         barcode: barcode,
       });
-
-      }
+    } catch (err) {
+      return fail(500, { message: "Could not create the article" });
     }
   },
 };
