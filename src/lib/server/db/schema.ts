@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   pgTable,
   serial,
@@ -7,21 +8,27 @@ import {
   boolean,
   decimal,
   primaryKey,
+  index,
+  check,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
-export const customers = pgTable("customers", {
-  id: text("id").primaryKey(),
-  username: text("username").unique(),
-  email: text("email").unique(),
-  passwordHash: text("password_hash"),
-  createdAtCus: timestamp("created_at", {
-    withTimezone: true,
-    mode: "date",
-  }).defaultNow(),
-  isRegistered: boolean("is_registedred").notNull().default(false),
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull(),
-});
+export const customers = pgTable(
+  "customers",
+  {
+    id: text("id").primaryKey(),
+    username: text("username").unique(),
+    email: text("email").unique(),
+    passwordHash: text("password_hash"),
+    isRegistered: boolean("is_registedred").notNull().default(false),
+    firstName: text("first_name").notNull(),
+    lastName: text("last_name").notNull(),
+  },
+  (table) => [
+    index("name_idx").on(table.username),
+    uniqueIndex("email_idx").on(table.email),
+  ]
+);
 
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
@@ -65,25 +72,32 @@ export const cart = pgTable("cart", {
     .references(() => products.id),
 });
 
-export const products = pgTable("products", {
-  id: integer("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  price: decimal("price", { precision: 12, scale: 2 }).notNull(),
-  imageID: integer("image_id").notNull(),
-  categoryID: integer("category_id")
-    .notNull()
-    .references(() => categories.id),
-  featured: boolean("featured").notNull(),
-  stock: integer("stock").notNull(),
-  createdAtPro: timestamp("created_at", {
-    withTimezone: true,
-    mode: "date",
-  })
-    .notNull()
-    .defaultNow(),
-  barcode: text("barcode").unique(),
-});
+export const products = pgTable(
+  "products",
+  {
+    id: integer("id").primaryKey(),
+    name: text("name").notNull().unique(),
+    description: text("description").notNull(),
+    price: decimal("price", { precision: 12, scale: 2 }).notNull(),
+    imageID: integer("image_id").notNull(),
+    categoryID: integer("category_id")
+      .notNull()
+      .references(() => categories.id),
+    featured: boolean("featured").notNull(),
+    stock: integer("stock").notNull(),
+    createdAtPro: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    })
+      .notNull()
+      .defaultNow(),
+    barcode: text("barcode").unique(),
+  },
+  (table) => [
+    check("stock_check", sql`${table.stock} > 0`),
+    check("price_check", sql`${table.price} > 0`),
+  ]
+);
 
 export const cartProducts = pgTable(
   "cart_products",
@@ -111,7 +125,7 @@ export const session = pgTable("session", {
   userID: text("user_id")
     .notNull()
     .references(() => customers.id),
-  expiresAt: timestamp("expiresAt", {
+  expiresAt: timestamp("expires_at", {
     withTimezone: true,
     mode: "date",
   }).notNull(),
