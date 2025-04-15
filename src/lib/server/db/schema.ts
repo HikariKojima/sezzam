@@ -12,6 +12,7 @@ import {
   check,
   uniqueIndex,
   numeric,
+  type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 
 export const customers = pgTable(
@@ -20,37 +21,21 @@ export const customers = pgTable(
     id: text("id").primaryKey(),
     username: text("username").unique(),
     email: text("email").unique(),
+    guestID: text("guest_id").references((): AnyPgColumn => customers.id),
     passwordHash: text("password_hash"),
     isRegistered: boolean("is_registedred").notNull().default(false),
     firstName: text("first_name").notNull(),
     lastName: text("last_name").notNull(),
+    expiresAt: timestamp("expires_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
   },
   (table) => [
     index("name_idx").on(table.username),
     uniqueIndex("email_idx").on(table.email),
   ]
 );
-
-export const orders = pgTable("orders", {
-  id: serial("id").primaryKey(),
-  cartID: integer("cart_id")
-    .notNull()
-    .references(() => cart.id)
-    .unique(),
-  userID: text("user_id").default("guest"),
-  customerEmail: text("customer_email").notNull(),
-  orderDate: timestamp("order_date", {
-    withTimezone: true,
-    mode: "date",
-  })
-    .notNull()
-    .defaultNow(),
-  totalAmount: decimal("total_amount", { precision: 12, scale: 2 }).notNull(),
-  status: text("status").notNull().default("processing"),
-  shippingAdress: text("shipping_adress").notNull(),
-  typeOfPayment: text("type_of_payment").notNull(),
-  phoneNumber: text("phone_number").notNull(),
-});
 
 export const products = pgTable(
   "products",
@@ -81,12 +66,32 @@ export const products = pgTable(
   ]
 );
 
+export const categories = pgTable(
+  "categories",
+  {
+    id: serial("id").primaryKey(),
+    name: text("name").notNull(),
+    parentID: integer("parent_id").references((): AnyPgColumn => categories.id),
+    imageURL: text("image").notNull(),
+    slug: text("slug").notNull().unique(),
+  },
+  (table) => [check("no_circle", sql`${table.id} <> ${table.parentID}`)]
+);
+
+export const productCategories = pgTable("product_categories", {
+  productID: integer("product_id")
+    .notNull()
+    .references(() => products.id),
+  categoryID: integer("category_id")
+    .notNull()
+    .references(() => categories.id),
+});
+
 export const cart = pgTable("cart", {
   id: serial("id").primaryKey(),
   customerID: text("customer_id")
     .notNull()
     .references(() => customers.id),
-  sessionID: text("session_id").references(() => session.id),
   createdAtCart: timestamp("created_at", {
     withTimezone: true,
     mode: "date",
@@ -103,6 +108,11 @@ export const cart = pgTable("cart", {
   product_id: integer("product_id")
     .notNull()
     .references(() => products.id),
+  quantity: integer("quantity").notNull(),
+  notes: text("notes"),
+  shippingAdress: text("shipping_adress").notNull(),
+  typeOfPayment: text("type_of_payment").notNull(),
+  phoneNumber: text("phone_number").notNull(),
 });
 
 export const cartProducts = pgTable(
@@ -114,39 +124,9 @@ export const cartProducts = pgTable(
     productID: integer("product_id")
       .notNull()
       .references(() => products.id),
-    quantity: integer("quantity").notNull(),
   },
   (table) => [primaryKey({ columns: [table.cartID, table.productID] })]
 );
-
-export const categories = pgTable("categories", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  imageURL: text("image").notNull(),
-  slug: text("slug").notNull().unique(),
-});
-
-export const session = pgTable("session", {
-  id: text("id").primaryKey(),
-  userID: text("user_id")
-    .notNull()
-    .references(() => customers.id),
-  expiresAt: timestamp("expires_at", {
-    withTimezone: true,
-    mode: "date",
-  }).notNull(),
-});
-
-export const orderStatusHistory = pgTable("order_status_history", {
-  id: serial("id").primaryKey(),
-  orderID: integer("order_id").references(() => orders.id),
-  status: text("status").notNull(),
-  changedAt: timestamp("changed_at", {
-    withTimezone: true,
-    mode: "date",
-  }).defaultNow(),
-  notes: text("notes").notNull(),
-});
 
 export const productImages = pgTable("product_images", {
   id: serial("id").primaryKey(),
@@ -156,12 +136,9 @@ export const productImages = pgTable("product_images", {
   isCoverImage: boolean("is_cover_image").notNull().default(false),
 });
 
-export type Session = typeof session.$inferSelect;
 export type Product = typeof products.$inferSelect;
 export type Categories = typeof categories.$inferSelect;
 export type Customer = typeof customers.$inferSelect;
-export type Order = typeof orders.$inferSelect;
 export type Cart = typeof cart.$inferSelect;
 export type CartProduct = typeof cartProducts.$inferSelect;
-export type OrderStatusHistory = typeof orderStatusHistory.$inferSelect;
 export type ProductImage = typeof productImages.$inferSelect;
