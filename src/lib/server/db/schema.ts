@@ -21,9 +21,7 @@ export const customers = pgTable(
     id: text("id").primaryKey(),
     username: text("username").unique(),
     email: text("email").unique(),
-    guestID: text("guest_id").references((): AnyPgColumn => customers.id),
     passwordHash: text("password_hash"),
-    isRegistered: boolean("is_registedred").notNull().default(false),
     firstName: text("first_name").notNull(),
     lastName: text("last_name").notNull(),
     expiresAt: timestamp("expires_at", {
@@ -46,7 +44,6 @@ export const products = pgTable(
     price: decimal("price", { precision: 12, scale: 2 })
       .notNull()
       .$type<number>(),
-    imageID: integer("image_id").notNull(),
     categoryID: integer("category_id")
       .notNull()
       .references(() => categories.id),
@@ -105,10 +102,6 @@ export const cart = pgTable("cart", {
     scale: 2,
   }).notNull(),
   status: text("status").notNull().default("active"),
-  product_id: integer("product_id")
-    .notNull()
-    .references(() => products.id),
-  quantity: integer("quantity").notNull(),
   notes: text("notes"),
   shippingAdress: text("shipping_adress").notNull(),
   typeOfPayment: text("type_of_payment").notNull(),
@@ -124,6 +117,8 @@ export const cartProducts = pgTable(
     productID: integer("product_id")
       .notNull()
       .references(() => products.id),
+    quantity: integer("quantity").notNull(),
+    price: decimal("price", { precision: 12, scale: 2 }).notNull(),
   },
   (table) => [primaryKey({ columns: [table.cartID, table.productID] })]
 );
