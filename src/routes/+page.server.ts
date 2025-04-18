@@ -4,7 +4,7 @@ import {
   validateSessionToken,
   setSessionTokenCookie,
   deleteSessionTokenCookie,
-} from "$lib/server/auth";
+} from "./api/auth";
 import { db } from "$lib/server/db";
 import { products } from "$lib/server/db/schema";
 

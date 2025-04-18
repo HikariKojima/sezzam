@@ -20,6 +20,7 @@ export async function createSession(token: string, userId: string) {
   const session: table.Session = {
     id: sessionId,
     userID: userId,
+    userToken: token,
     expiresAt: new Date(Date.now() + DAY_IN_MS * 30),
   };
   await db.insert(table.session).values(session);

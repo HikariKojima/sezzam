@@ -24,15 +24,27 @@ export const customers = pgTable(
     passwordHash: text("password_hash"),
     firstName: text("first_name").notNull(),
     lastName: text("last_name").notNull(),
-    expiresAt: timestamp("expires_at", {
-      withTimezone: true,
-      mode: "date",
-    }).notNull(),
   },
   (table) => [
     index("name_idx").on(table.username),
     uniqueIndex("email_idx").on(table.email),
   ]
+);
+
+export const session = pgTable(
+  "session",
+  {
+    id: text("id").primaryKey(),
+    userID: text("user_id")
+      .notNull()
+      .references(() => customers.id),
+    userToken: text("user_token").notNull(),
+    expiresAt: timestamp("expires_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+  },
+  (table) => [index("user_idx").on(table.userID)]
 );
 
 export const products = pgTable(
@@ -137,3 +149,4 @@ export type Customer = typeof customers.$inferSelect;
 export type Cart = typeof cart.$inferSelect;
 export type CartProduct = typeof cartProducts.$inferSelect;
 export type ProductImage = typeof productImages.$inferSelect;
+export type Session = typeof session.$inferSelect;
