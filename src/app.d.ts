@@ -1,9 +1,11 @@
 // for information about these interfaces
+import type { Customers, Session } from "$lib/server/db/schema";
+
 declare global {
   namespace App {
     interface Locals {
-      user: import("./routes/api/auth").SessionValidationResult["user"];
-      session: import("./routes/api/auth").SessionValidationResult["session"];
+      user: Customers | null;
+      session: Session | null;
     }
   }
 }
