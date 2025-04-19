@@ -5,8 +5,7 @@
   import Tile from "$lib/assets/Tiles.svg";
   import Floor from "$lib/assets/WoodenFloor.svg";
   import Footer from "$lib/components/myComponents/footer/footer.svelte";
-  export let data;
-
+  let { data } = $props();
   const categories = [
     {
       id: 1,
