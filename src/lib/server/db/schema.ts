@@ -30,9 +30,7 @@ export const cart = pgTable("cart", {
 
 export const sessionTable = pgTable("session", {
   id: text().primaryKey().notNull(),
-  customerId: integer("customer_id")
-    .notNull()
-    .references(() => customersTable.id),
+  customerId: integer("customer_id").references(() => customersTable.id),
   expiresAt: timestamp("expires_at", {
     withTimezone: true,
   }).notNull(),
