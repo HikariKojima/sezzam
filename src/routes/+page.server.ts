@@ -5,7 +5,7 @@ import {
   validateSessionToken,
   setSessionTokenCookie,
   deleteSessionTokenCookie,
-} from "../lib/server/session/auth";
+} from "../lib/server/db/auth";
 
 const token = generateSessionToken();
 const session = createSession(token);
