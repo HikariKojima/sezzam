@@ -17,13 +17,13 @@ import { sql, type InferSelectModel } from "drizzle-orm";
 
 export const cart = pgTable("cart", {
   id: serial().primaryKey().notNull(),
-  userId: text("user_id").notNull(),
+  userId: text("user_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }),
   totalAmount: numeric("total_amount", { precision: 12, scale: 2 }).notNull(),
   status: text().default("active").notNull(),
   notes: text(),
-  shippingAdress: text("shipping_adress").notNull(),
+  shippingAdress: text("shipping_adress"),
   typeOfPayment: text("type_of_payment").notNull(),
   phoneNumber: text("phone_number").notNull(),
 });
