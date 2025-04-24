@@ -14,6 +14,7 @@ import {
   primaryKey,
 } from "drizzle-orm/pg-core";
 import { sql, type InferSelectModel } from "drizzle-orm";
+import { db } from ".";
 
 export const cart = pgTable("cart", {
   id: serial().primaryKey().notNull(),
