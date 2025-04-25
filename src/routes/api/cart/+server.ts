@@ -3,16 +3,16 @@ import { db } from "$lib/server/db/index";
 import { cartProducts, cart } from "$lib/server/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 
-export async function GET({ url }: RequestEvent) {
+export async function GET({ request, locals }: RequestEvent) {
   try {
-    const userId = url.searchParams.get("userId");
-    if (!userId) {
-      return json({ error: "Cart ID is required" }, { status: 400 });
+    const session = locals.session;
+    if (!session) {
+      return json({ error: "Session not found" }, { status: 401 });
     }
     const userCart = await db
       .select()
       .from(cart)
-      .where(and(eq(cart.userId, userId), eq(cart.status, "active")));
+      .where(and(eq(cart.sessionId, session.id), eq(cart.status, "active")));
 
     if (!userCart.length) {
       return json({ items: [] });

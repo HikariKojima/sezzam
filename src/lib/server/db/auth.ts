@@ -38,15 +38,16 @@ export async function validateSessionToken(
   token: string
 ): Promise<SessionValidationResult> {
   const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-  const result = await db
-    .select({ user: customersTable, session: sessionTable })
+  const sessionResult = await db
+    .select()
     .from(sessionTable)
-    .innerJoin(customersTable, eq(sessionTable.customerId, customersTable.id))
     .where(eq(sessionTable.id, sessionId));
-  if (result.length < 1) {
+
+  if (sessionResult.length < 1) {
     return { session: null, user: null };
   }
-  const { user, session } = result[0];
+  const session = sessionResult[0];
+
   if (Date.now() >= session.expiresAt.getTime()) {
     await db.delete(sessionTable).where(eq(sessionTable.id, session.id));
     return { session: null, user: null };
@@ -60,7 +61,20 @@ export async function validateSessionToken(
       })
       .where(eq(sessionTable.id, session.id));
   }
-  return { session, user };
+
+  if (!session.customerId) {
+    return { session, user: null };
+  }
+
+  const userResult = await db
+    .select()
+    .from(customersTable)
+    .where(eq(customersTable.id, session.customerId));
+
+  if (userResult.length < 1) {
+    return { session: null, user: null };
+  }
+  return { session, user: userResult[0] };
 }
 
 export async function invalidateSession(sessionId: string): Promise<void> {
@@ -73,7 +87,8 @@ export async function invalidateAllSessions(userId: number): Promise<void> {
 
 export type SessionValidationResult =
   | { session: Session; user: Customers }
-  | { session: null; user: null };
+  | { session: null; user: null }
+  | { session: Session; user: null };
 
 import type { RequestEvent } from "@sveltejs/kit";
 

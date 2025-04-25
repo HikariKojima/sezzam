@@ -7,25 +7,41 @@ import {
   deleteSessionTokenCookie,
 } from "../lib/server/db/auth";
 
-const token = generateSessionToken();
-const session = createSession(token);
-//setSessionTokenCookie(token);
-
 export const load: PageServerLoad = async (event) => {
-  const token = event.cookies.get("session") ?? null;
-  if (token === null) {
+  try {
+    const token = event.cookies.get("session");
+
+    if (!token) {
+      const newToken = generateSessionToken();
+      const newSession = await createSession(newToken);
+      setSessionTokenCookie(event, newToken, newSession.expiresAt);
+      return {
+        session: newSession,
+        user: null,
+      };
+    }
+
+    const { session, user } = await validateSessionToken(token);
+    if (!session) {
+      const newToken = generateSessionToken();
+      const newSession = await createSession(newToken);
+      setSessionTokenCookie(event, newToken, newSession.expiresAt);
+      return {
+        session: newSession,
+        user: null,
+      };
+    }
+
     return {
-      status: 401,
+      session,
+      user,
+    };
+  } catch (error) {
+    console.error("Session error:", error);
+    return {
+      session: null,
+      user: null,
+      error: "Failed to validate session",
     };
   }
-
-  const { session, user } = await validateSessionToken(token);
-  if (session === null) {
-    deleteSessionTokenCookie(event);
-    return {
-      status: 401,
-    };
-  }
-
-  setSessionTokenCookie(event, token, session.expiresAt);
 };

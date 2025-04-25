@@ -19,6 +19,7 @@ import { db } from ".";
 export const cart = pgTable("cart", {
   id: serial().primaryKey().notNull(),
   userId: text("user_id"),
+  sessionId: text("session_id").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }),
   totalAmount: numeric("total_amount", { precision: 12, scale: 2 }).notNull(),
