@@ -1,9 +1,10 @@
 import { json, type RequestEvent } from "@sveltejs/kit";
 import { db } from "$lib/server/db/index";
 import { cartProducts, cart } from "$lib/server/db/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
+import { error } from "console";
 
-export async function GET({ request, locals }: RequestEvent) {
+export async function GET({ locals }: RequestEvent) {
   try {
     const session = locals.session;
     if (!session) {
@@ -32,12 +33,18 @@ export async function GET({ request, locals }: RequestEvent) {
   }
 }
 
-export async function POST({ request }: RequestEvent) {
+export async function POST({ locals, request }: RequestEvent) {
   try {
-    const body = await request.json();
-    const { productID, quantity } = body;
+    const session = locals.session;
 
-    if (!productID || !quantity) {
+    if (!session) {
+      return json({ error: "Session not found" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { productId, quantity, price } = body;
+
+    if (!productId || !quantity) {
       return json(
         { error: "Product ID and quantity are required" },
         { status: 400 }
@@ -47,34 +54,32 @@ export async function POST({ request }: RequestEvent) {
     let userCart = await db
       .select()
       .from(cart)
-      .where(and(eq(cart.userId, body.userId), eq(cart.status, "active")));
+      .where(and(eq(cart.sessionId, session.id), eq(cart.status, "active")));
 
-    let cartID;
+    let cartId;
     if (!userCart.length) {
       const newCart = await db
         .insert(cart)
         .values({
-          userId: body.userId,
-          totalAmount: body.totalAmount,
-          shippingAdress: body.shippingAdress || "pickup",
-          typeOfPayment: body.typeOfPayment,
-          phoneNumber: body.phoneNumber || "",
-          status: "active",
+          sessionId: session.id,
+          totalAmount: (price * quantity).toString(),
+          typeOfPayment: "pending",
+          phoneNumber: "pending",
         })
         .returning();
 
-      cartID = newCart[0].id;
+      cartId = newCart[0].id;
     } else {
-      cartID = userCart[0].id;
+      cartId = userCart[0].id;
     }
 
     const cartItem = await db
       .insert(cartProducts)
       .values({
-        cartId: cartID,
-        productId: productID,
-        quantity: quantity,
-        price: body.price,
+        cartId,
+        productId,
+        quantity,
+        price,
       })
       .returning();
 
@@ -85,38 +90,129 @@ export async function POST({ request }: RequestEvent) {
   }
 }
 
-export async function DELETE({ url }: RequestEvent) {
+export async function DELETE({ locals }: RequestEvent) {
   try {
-    const userId = url.searchParams.get("userId");
-    if (!userId) {
-      return json({ error: "User ID is required" }, { status: 400 });
+    const session = locals.session;
+    if (!session) {
+      return json({ error: "Session not found" }, { status: 401 });
     }
 
-    const userCart = await db
-      .select()
-      .from(cart)
-      .where(and(eq(cart.userId, userId), eq(cart.status, "active")));
-    if (!userCart.length) {
-      return json(
-        { error: "No active cart found for this user" },
-        { status: 404 }
-      );
-    }
+    return await db.transaction(async (tx) => {
+      const userCart = await db
+        .select()
+        .from(cart)
+        .where(and(eq(cart.sessionId, session.id), eq(cart.status, "active")));
+      if (!userCart.length) {
+        return json(
+          { error: "No active cart found for this user" },
+          { status: 404 }
+        );
+      }
+      await tx
+        .delete(cartProducts)
+        .where(eq(cartProducts.cartId, userCart[0].id));
 
-    await db
-      .delete(cartProducts)
-      .where(eq(cartProducts.cartId, userCart[0].id));
-
-    await db
-      .update(cart)
-      .set({
-        totalAmount: "0.00",
-        status: "cleared",
-      })
-      .where(eq(cart.id, userCart[0].id));
-    return json({ message: "Cart cleared successfully" });
+      await tx
+        .update(cart)
+        .set({
+          totalAmount: (0.0).toString(),
+          status: "cleared",
+          updatedAt: new Date(),
+        })
+        .where(eq(cart.id, userCart[0].id));
+      return json({
+        message: "Cart cleared successfully",
+        cartId: userCart[0].id,
+      });
+    });
   } catch (error) {
     console.error("Error clearing cart:", error);
     return json({ error: "Failed to clear cart" }, { status: 500 });
+  }
+}
+
+export async function PATCH({ locals, request }: RequestEvent) {
+  try {
+    const session = locals.session;
+
+    if (!session) {
+      return json({ error: "Session not found" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { productId, quantity, price } = body;
+
+    if (!productId || !quantity) {
+      return json(
+        { error: "Product ID and quantity are required" },
+        { status: 400 }
+      );
+    }
+
+    return await db.transaction(async (tx) => {
+      const userCart = await tx
+        .select()
+        .from(cart)
+        .where(and(eq(cart.sessionId, session.id), eq(cart.status, "active")));
+
+      if (!userCart.length) {
+        return json({ error: "No active cart found" }, { status: 404 });
+      }
+
+      const existingProduct = await tx
+        .select()
+        .from(cartProducts)
+        .where(
+          and(
+            eq(cartProducts.cartId, userCart[0].id),
+            eq(cartProducts.productId, productId)
+          )
+        );
+
+      if (!existingProduct.length) {
+        return json({ error: "Product not found in cart" }, { status: 404 });
+      }
+
+      const priceDifference =
+        (quantity - existingProduct[0].quantity) *
+        Number(existingProduct[0].price);
+
+      await tx
+        .update(cartProducts)
+        .set({ quantity: quantity })
+        .where(
+          and(
+            eq(cartProducts.cartId, userCart[0].id),
+            eq(cartProducts.productId, productId)
+          )
+        );
+
+      const newTotal = (
+        Number(userCart[0].totalAmount) + priceDifference
+      ).toFixed(2);
+
+      await tx
+        .update(cart)
+        .set({ updatedAt: new Date(), totalAmount: newTotal })
+        .where(eq(cart.id, userCart[0].id));
+
+      const updatedCart = await tx
+        .select()
+        .from(cart)
+        .where(eq(cart.id, userCart[0].id));
+
+      const updatedItems = await tx
+        .select()
+        .from(cartProducts)
+        .where(eq(cartProducts.cartId, userCart[0].id));
+      return json({
+        message: "Cart updated successfully",
+        cart: updatedCart[0],
+        items: updatedItems,
+      });
+    });
+  } catch (error) {
+    console.log("Error updating cart:", error);
+    return json({ error: "Failed to update caert" }, { status: 500 });
   }
 }
