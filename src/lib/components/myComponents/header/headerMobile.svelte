@@ -1,5 +1,5 @@
 <script lang="ts">
-  import SearchBarMobile from "./headerComponents/searchBarMobile.svelte";
+  import SearchBar from "./headerComponents/searchBar.svelte";
   import { Truck } from "@lucide/svelte";
   import { Phone } from "@lucide/svelte";
 </script>
@@ -9,7 +9,7 @@
 >
   <a class="text-xl min-w-[100px]" href="#">Sezzam</a>
   <div class="flex-1 mx-4 lg:mx-8">
-    <SearchBarMobile />
+    <SearchBar />
   </div>
   <div class="flex items-center justify-center gap-2">
     <div class="phone flex items-center justify-center gap-2">
