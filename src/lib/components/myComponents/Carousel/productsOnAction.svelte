@@ -12,6 +12,14 @@
     thumbnail: string;
   }>;
 
+  let quantities = new Map<number, number>();
+
+  function updateQuantity(productId: number, change: number) {
+    const currentQty = quantities.get(productId) || 1;
+    const newQty = Math.max(1, currentQty + change);
+    quantities.set(productId, newQty);
+  }
+
   async function addToCart(product: { id: number; price: number }) {
     try {
       const quantity = quantities.get(product.id) || 1;
@@ -62,10 +70,25 @@
                   <div
                     class="overlay absolute inset-0 flex items-center justify-center"
                   >
+                    <div class="quantity-control flex items-center gap-2 p-2">
+                      <button
+                        onclick={() => updateQuantity(product.id, -1)}
+                        class="p-1 hover:bg-gray-200 rounded"
+                        ><Minus size={20} />
+                      </button>
+                      <span class="w-8 text-center font-bold"
+                        >{quantities.get(product.id) || 1}</span
+                      >
+                      <button
+                        onclick={() => updateQuantity(product.id, 1)}
+                        class="p-1 hover:bg-gray-200 rounded"
+                        ><Plus size={20} />
+                      </button>
+                    </div>
                     <button
                       class="bg-[#EC5800] text-white px-4 py-2 rounded-md hover:bg-[#BF4700] transition-colors flex items-center gap-2"
                       onclick={() => addToCart(product)}
-                      ><ShoppingCart size={20} /></button
+                      ><ShoppingCart size={20} />Dodaj u korpu</button
                     >
                   </div>
                 </div>
