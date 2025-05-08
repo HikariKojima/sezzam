@@ -2,7 +2,6 @@ import { json, type RequestEvent } from "@sveltejs/kit";
 import { db } from "$lib/server/db/index";
 import { cartProducts, cart } from "$lib/server/db/schema";
 import { and, eq } from "drizzle-orm";
-import { error } from "console";
 
 export async function GET({ locals }: RequestEvent) {
   try {

@@ -54,10 +54,23 @@
 >
   <Carousel.Content class="-ml-4 mb-12">
     {#each products as product (product.id)}
+      <button
+        class=" text-black p-4"
+        onclick={() => updateQuantity(product.id, 1)}
+      >
+        Add
+      </button>
+      <button
+        class="text-black p-4"
+        onclick={() => updateQuantity(product.id, -1)}
+      >
+        Sub
+      </button>
+
       <Carousel.Item
         class="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
       >
-        <a class="cursor-pointer" href="#">
+        <a class="cursor-pointer" href="src/routes/{product.id}">
           <div class="relative product-container">
             <Card.Root class="h-full flex flex-col">
               <Card.Header>

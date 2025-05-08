@@ -1,7 +1,30 @@
 <script lang="ts">
+  import type { CartProducts } from "$lib/server/db/schema";
   import SearchBar from "./headerComponents/searchBar.svelte";
   import { Truck } from "@lucide/svelte";
   import { Phone } from "@lucide/svelte";
+
+  let cartItems = $state<CartProducts[]>([]);
+  let cartTotal = $state<string>("0.00");
+  async function getCart() {
+    try {
+      const response = await fetch("/api/cart");
+      if (!response.ok) {
+        throw new Error("Unable to fetch cart");
+      }
+      const data = await response.json();
+      cartItems = data.items;
+      cartTotal = data.cart?.totalAmount || "0.00";
+    } catch (error) {
+      console.error("Error fetching cart: ", error);
+    }
+  }
+
+  $effect(() => {
+    getCart();
+  });
+
+  $inspect(cartItems);
 </script>
 
 <nav
@@ -23,7 +46,11 @@
       <p>Korpa</p>
       <div class="flex items-center justify-center">
         <Truck class="text-[rgb(236,88,0)]" />
-        <span class="font-bold pl-2">1</span>
+        {#if cartItems.length}
+          <span class="font-bold"
+            >{cartItems.length} <span>{cartTotal}</span></span
+          >
+        {/if}
       </div>
     </div>
   </div>
