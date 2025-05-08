@@ -1,11 +1,27 @@
 <script lang="ts">
-  import type { CartProducts } from "$lib/server/db/schema";
+  import { type Products, type CartProducts } from "$lib/server/db/schema";
   import SearchBar from "./headerComponents/searchBar.svelte";
   import { Truck } from "@lucide/svelte";
   import { Phone } from "@lucide/svelte";
 
   let cartItems = $state<CartProducts[]>([]);
+  let itemsInCart = $state<Products[]>([]);
   let cartTotal = $state<string>("0.00");
+
+  async function getItems(product: CartProducts) {
+    try {
+      const response = await fetch(`/api/products?id=${product.productId}`);
+      if (!response.ok) {
+        Error("Failed to fetch item");
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.log("error while fetching", error);
+      return null;
+    }
+  }
+
   async function getCart() {
     try {
       const response = await fetch("/api/cart");
@@ -15,6 +31,10 @@
       const data = await response.json();
       cartItems = data.items;
       cartTotal = data.cart?.totalAmount || "0.00";
+
+      const productPromises = cartItems.map((item) => getItems(item));
+      const products = await Promise.all(productPromises);
+      itemsInCart = products.filter((product) => product !== null);
     } catch (error) {
       console.error("Error fetching cart: ", error);
     }
@@ -23,8 +43,6 @@
   $effect(() => {
     getCart();
   });
-
-  $inspect(cartItems);
 </script>
 
 <nav
@@ -55,3 +73,7 @@
     </div>
   </div>
 </nav>
+infoo
+{#each itemsInCart as item, i}
+  {item.name}
+{/each}

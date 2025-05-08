@@ -1,5 +1,4 @@
 <script lang="ts">
-  import HeaderMobile from "$lib/components/myComponents/header/headerMobile.svelte";
   import ActionCarousel from "$lib/components/myComponents/Carousel/productsOnAction.svelte";
   import CategoryCarousel from "$lib/components/myComponents/Carousel/categoryCarousel.svelte";
   import Tile from "$lib/assets/Tiles.svg";
