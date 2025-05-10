@@ -126,7 +126,7 @@ export const products = pgTable(
     name: text().notNull(),
     description: text().notNull(),
     price: numeric({ precision: 12, scale: 2 }).notNull(),
-    categoryId: integer("category_id").notNull(),
+    categoryId: integer("category_id"),
     featured: boolean().notNull(),
     stock: integer().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })

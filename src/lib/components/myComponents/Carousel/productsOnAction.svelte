@@ -55,23 +55,10 @@
 >
   <Carousel.Content class="-ml-4 mb-12">
     {#each products as product (product.id)}
-      <button
-        class=" text-black p-4"
-        onclick={() => updateQuantity(product.id, 1)}
-      >
-        Add
-      </button>
-      <button
-        class="text-black p-4"
-        onclick={() => updateQuantity(product.id, -1)}
-      >
-        Sub
-      </button>
-
       <Carousel.Item
         class="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
       >
-        <a class="cursor-pointer" href="src/routes/{product.id}">
+        <a class="cursor-pointer" href="/products/{product.id}">
           <div class="relative product-container">
             <Card.Root class="h-full flex flex-col">
               <Card.Header>
@@ -81,43 +68,24 @@
                     src={product.thumbnail}
                     alt={product.description}
                   />
-                  <div
-                    class="overlay absolute inset-0 flex items-center justify-center"
+
+                  <Card.Title class="mt-4 line-clamp-2 text-xl"
+                    >{product.title}</Card.Title
                   >
-                    <div class="quantity-control flex items-center gap-2 p-2">
-                      <button
-                        onclick={() => updateQuantity(product.id, -1)}
-                        class="p-1 hover:bg-gray-200 rounded"
-                        ><Minus size={20} />
-                      </button>
-                      <span class="w-8 text-center font-bold"
-                        >{quantities.get(product.id) || 1}</span
-                      >
-                      <button
-                        onclick={() => updateQuantity(product.id, 1)}
-                        class="p-1 hover:bg-gray-200 rounded"
-                        ><Plus size={20} />
-                      </button>
-                    </div>
-                    <button
-                      class="bg-[#EC5800] text-white px-4 py-2 rounded-md hover:bg-[#BF4700] transition-colors flex items-center gap-2"
-                      onclick={() => addToCart(product)}
-                      ><ShoppingCart size={20} />Dodaj u korpu</button
-                    >
-                  </div>
-                </div>
-                <Card.Title class="mt-4 line-clamp-2 text-xl"
-                  >{product.title}</Card.Title
-                >
-                <Card.Description>{product.title}</Card.Description>
-              </Card.Header>
-              <Card.Content class="">
+                  <Card.Description>{product.title}</Card.Description>
+                </div></Card.Header
+              >
+              <Card.Content>
                 <div class="flex items-center justify-center flex-col">
                   <p class="text-red-500 font-bold text-xl">
                     {product.price}km/m2
                   </p>
                   <p class="line-through">{product.price}km/m2</p>
                 </div>
+                <button
+                  class="p-2 bg-amber-500 cursor-pointer"
+                  onclick={() => addToCart(product)}>Dodaj u korpu</button
+                >
               </Card.Content>
             </Card.Root>
           </div>
@@ -129,25 +97,5 @@
   <Carousel.Next />
 </Carousel.Root>
 
-{#each products as product (product.id)}
-  <button class="cursor-pointer" onclick={() => addToCart(product)}
-    >click me</button
-  >
-{/each}
-
 <style>
-  .overlay {
-    opacity: 0;
-    transition: all 0.3s ease;
-    background: rgba(0, 0, 0, 0.5);
-  }
-
-  .product-container:hover .overlay {
-    opacity: 1;
-  }
-
-  .quantity-control {
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 0.375rem;
-  }
 </style>

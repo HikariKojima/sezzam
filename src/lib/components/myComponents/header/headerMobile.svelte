@@ -15,6 +15,7 @@
         Error("Failed to fetch item");
       }
       const data = await response.json();
+      console.log("fired2");
       return data;
     } catch (error) {
       console.log("error while fetching", error);
@@ -35,6 +36,7 @@
       const productPromises = cartItems.map((item) => getItems(item));
       const products = await Promise.all(productPromises);
       itemsInCart = products.filter((product) => product !== null);
+      console.log("fired");
     } catch (error) {
       console.error("Error fetching cart: ", error);
     }

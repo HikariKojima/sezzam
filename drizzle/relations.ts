@@ -1,5 +1,16 @@
 import { relations } from "drizzle-orm/relations";
-import { products, productCategories, categories, productImages, cart, cartProducts } from "./schema";
+import { customers, session, products, productCategories, categories, productImages, cart, cartProducts } from "./schema";
+
+export const sessionRelations = relations(session, ({one}) => ({
+	customer: one(customers, {
+		fields: [session.customerId],
+		references: [customers.id]
+	}),
+}));
+
+export const customersRelations = relations(customers, ({many}) => ({
+	sessions: many(session),
+}));
 
 export const productCategoriesRelations = relations(productCategories, ({one}) => ({
 	product: one(products, {
