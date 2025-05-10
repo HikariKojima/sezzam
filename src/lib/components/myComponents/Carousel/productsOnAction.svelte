@@ -23,7 +23,7 @@
   async function addToCart(product: { id: number; price: number }) {
     try {
       const quantity = quantities.get(product.id) || 1;
-      const response = await fetch("api/cart", {
+      const response = await fetch("/api/cart", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -37,6 +37,7 @@
       if (!response.ok) {
         throw new Error("failed to add to cart");
       }
+
       quantities.set(product.id, 1);
     } catch (error) {
       console.error("Failed to add to cart", error);
@@ -127,6 +128,12 @@
   <Carousel.Previous />
   <Carousel.Next />
 </Carousel.Root>
+
+{#each products as product (product.id)}
+  <button class="cursor-pointer" onclick={() => addToCart(product)}
+    >click me</button
+  >
+{/each}
 
 <style>
   .overlay {

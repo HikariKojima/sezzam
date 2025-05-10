@@ -75,5 +75,5 @@
 </nav>
 infoo
 {#each itemsInCart as item, i}
-  {item.name}
+  {item.name} /
 {/each}
