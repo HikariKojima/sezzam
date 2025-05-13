@@ -27,10 +27,31 @@
     });
   }
 
+  async function deleteFromCart(productId: number) {
+    const quantity = 0;
+    const response = await fetch("/api/cart", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        productId: productId,
+        quantity,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error("failed to delete from cart");
+    }
+  }
+
   function updateQuantity(productId: number, change: number) {
     const currentQty = quantities.get(productId) || 1;
-    const newQty = Math.max(1, currentQty + change);
+    const newQty = currentQty + change;
     quantities.set(productId, newQty);
+    quantities = new Map(quantities);
+    if (newQty === 0) {
+      deleteFromCart(productId);
+    }
   }
 
   async function addToCart(product: { id: number; price: number }) {
@@ -48,12 +69,12 @@
         }),
       });
       if (!response.ok) {
-        console.log(btnState.get(product.id));
         btnState.set(product.id, false);
         btnState = new Map(btnState);
-        console.log(btnState);
         throw new Error("failed to add to cart");
       }
+      btnState.set(product.id, false);
+      btnState = new Map(btnState);
       quantities.set(product.id, 1);
     } catch (error) {
       console.error("Failed to add to cart", error);
@@ -104,6 +125,22 @@
                   class="cursor-pointer"
                   onclick={() => addToCart(product)}>Dodaj u korpu</Button
                 >
+              {:else}
+                <div class="flex items-center justify-center gap-2">
+                  <Button
+                    class="w-2.5"
+                    onclick={() => updateQuantity(product.id, -1)}
+                  >
+                    <Minus></Minus>
+                  </Button>
+                  <span>{quantities.get(product.id) || 1}</span>
+                  <Button
+                    class="w-2.5"
+                    onclick={() => updateQuantity(product.id, 1)}
+                  >
+                    <Plus></Plus>
+                  </Button>
+                </div>
               {/if}
             </Card.Content>
           </Card.Root>

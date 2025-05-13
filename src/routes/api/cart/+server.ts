@@ -139,7 +139,7 @@ export async function PATCH({ locals, request }: RequestEvent) {
     }
 
     const body = await request.json();
-    const { productId, quantity, price } = body;
+    const { productId, quantity } = body;
 
     if (!productId || !quantity) {
       return json(
@@ -170,6 +170,42 @@ export async function PATCH({ locals, request }: RequestEvent) {
 
       if (!existingProduct.length) {
         return json({ error: "Product not found in cart" }, { status: 404 });
+      }
+
+      if (quantity === 0) {
+        await tx
+          .delete(cartProducts)
+          .where(
+            and(
+              eq(cartProducts.cartId, userCart[0].id),
+              eq(cartProducts.productId, productId)
+            )
+          );
+
+        const updatedItems = await tx
+          .select()
+          .from(cartProducts)
+          .where(eq(cartProducts.cartId, userCart[0].id));
+
+        const newTotal = updatedItems
+          .reduce((sum, item) => sum + Number(item.price) * item.quantity, 0)
+          .toFixed(2);
+
+        await tx
+          .update(cart)
+          .set({ updatedAt: new Date(), totalAmount: newTotal })
+          .where(eq(cart.id, userCart[0].id));
+
+        const updatedCart = await tx
+          .select()
+          .from(cart)
+          .where(eq(cart.id, userCart[0].id));
+
+        return json({
+          message: "Product removed from cart",
+          cart: updatedCart[0],
+          items: updatedItems,
+        });
       }
 
       const priceDifference =
