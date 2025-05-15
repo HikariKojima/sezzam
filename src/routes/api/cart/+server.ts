@@ -141,11 +141,8 @@ export async function PATCH({ locals, request }: RequestEvent) {
     const body = await request.json();
     const { productId, quantity } = body;
 
-    if (!productId || !quantity) {
-      return json(
-        { error: "Product ID and quantity are required" },
-        { status: 400 }
-      );
+    if (!productId) {
+      return json({ error: "Product ID is required" }, { status: 400 });
     }
 
     return await db.transaction(async (tx) => {

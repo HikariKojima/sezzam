@@ -16,15 +16,39 @@
     }>;
   }>();
 
+  let cart = $state(null);
+  let cartItems = $state([]);
+
   let quantities = $derived(new Map<number, number>());
   let btnState = $derived(new Map<number, boolean>());
 
-  if (products) {
-    products.forEach((product: { id: number }) => {
-      if (!btnState.has(product.id)) {
-        btnState.set(product.id, true);
+  async function getProducts() {
+    try {
+      const response = await fetch("/api/cart");
+      if (!response.ok) {
+        throw new Error("fetch failed");
       }
-    });
+      const data = await response.json();
+      cart = data.cart;
+      cartItems = data.items;
+
+      btnState = new Map();
+      quantities = new Map();
+
+      cartItems.forEach((item: { productId: number; quantity: number }) => {
+        btnState.set(item.productId, false);
+        quantities.set(item.productId, item.quantity);
+      });
+
+      products.forEach((product: { id: number }) => {
+        if (!btnState.has(product.id)) {
+          btnState.set(product.id, true);
+          quantities.set(product.id, 1);
+        }
+      });
+    } catch (error) {
+      console.error("error fetching cart: ", error);
+    }
   }
 
   async function deleteFromCart(productId: number) {
@@ -51,6 +75,8 @@
     quantities = new Map(quantities);
     if (newQty === 0) {
       deleteFromCart(productId);
+      btnState.set(productId, true);
+      btnState = new Map(btnState);
     }
   }
 
@@ -69,17 +95,20 @@
         }),
       });
       if (!response.ok) {
-        btnState.set(product.id, false);
-        btnState = new Map(btnState);
         throw new Error("failed to add to cart");
       }
       btnState.set(product.id, false);
       btnState = new Map(btnState);
       quantities.set(product.id, 1);
+      quantities = new Map(quantities);
     } catch (error) {
       console.error("Failed to add to cart", error);
     }
   }
+
+  $effect(() => {
+    getProducts();
+  });
 </script>
 
 <h2 class="font-bold text-3xl text-center mb-6 mt-2">Aktuelne Akcije</h2>
