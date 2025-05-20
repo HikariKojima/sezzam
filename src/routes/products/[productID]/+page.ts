@@ -1,6 +1,5 @@
 import type { PageLoad } from "./$types";
 import { error } from "@sveltejs/kit";
-import type { CartProducts } from "$lib/server/db/schema";
 
 export const load: PageLoad = async ({ fetch, params }) => {
   const fetchProducts = async (id: string) => {
