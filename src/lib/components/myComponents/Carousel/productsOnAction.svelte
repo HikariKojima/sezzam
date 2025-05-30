@@ -2,7 +2,8 @@
   import * as Carousel from "$lib/components/ui/carousel/index.js";
   import Button from "$lib/components/ui/button/button.svelte";
   import * as Card from "$lib/components/ui/card/index.js";
-  import { Plus, Minus, ShoppingCart } from "@lucide/svelte";
+  import { Plus, Minus } from "@lucide/svelte";
+  import { cartItems, cartTotal, itemsInCart } from "$lib/stores/cart.state";
 
   const { products } = $props<{
     products: Array<{
@@ -16,98 +17,147 @@
     }>;
   }>();
 
-  let cart = $state(null);
-  let cartItems = $state([]);
+  // Use $state instead of $derived for mutable state
+  let quantities = $state(new Map<number, number>());
+  let btnState = $state(new Map<number, boolean>());
 
-  let quantities = $derived(new Map<number, number>());
-  let btnState = $derived(new Map<number, boolean>());
-
-  async function getProducts() {
+  async function refreshCart() {
     try {
       const response = await fetch("/api/cart");
-      if (!response.ok) {
-        throw new Error("fetch failed");
-      }
+      if (!response.ok) throw new Error("fetch failed");
       const data = await response.json();
-      cart = data.cart;
-      cartItems = data.items;
+      cartItems.set(data.items);
+      cartTotal.set(data.cart?.totalAmount || "0.00");
 
-      btnState = new Map();
-      quantities = new Map();
+      // Fetch product details for each cart item
+      const productPromises = data.items.map((item: { productId: any }) =>
+        fetch(`/api/products?id=${item.productId}`).then((res) => res.json())
+      );
+      const productDetails = await Promise.all(productPromises);
+      itemsInCart.set(productDetails.filter(Boolean));
 
-      cartItems.forEach((item: { productId: number; quantity: number }) => {
-        btnState.set(item.productId, false);
-        quantities.set(item.productId, item.quantity);
+      // Update local UI state - create new Maps to trigger reactivity
+      const newBtnState = new Map<number, boolean>();
+      const newQuantities = new Map<number, number>();
+
+      data.items.forEach((item: { productId: number; quantity: number }) => {
+        newBtnState.set(item.productId, false);
+        newQuantities.set(item.productId, item.quantity);
       });
 
-      products.forEach((product: { id: number }) => {
-        if (!btnState.has(product.id)) {
-          btnState.set(product.id, true);
-          quantities.set(product.id, 1);
+      products.forEach((product) => {
+        if (!newBtnState.has(product.id)) {
+          newBtnState.set(product.id, true);
+          newQuantities.set(product.id, 1);
         }
       });
+
+      btnState = newBtnState;
+      quantities = newQuantities;
     } catch (error) {
       console.error("error fetching cart: ", error);
     }
   }
 
-  async function deleteFromCart(productId: number) {
-    const quantity = 0;
-    const response = await fetch("/api/cart", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        productId: productId,
-        quantity,
-      }),
-    });
-    if (!response.ok) {
-      throw new Error("failed to delete from cart");
-    }
-  }
-
-  function updateQuantity(productId: number, change: number) {
-    const currentQty = quantities.get(productId) || 1;
-    const newQty = currentQty + change;
-    quantities.set(productId, newQty);
-    quantities = new Map(quantities);
-    if (newQty === 0) {
-      deleteFromCart(productId);
-      btnState.set(productId, true);
-      btnState = new Map(btnState);
-    }
-  }
-
   async function addToCart(product: { id: number; price: number }) {
+    // Optimistically update UI
+    const newBtnState = new Map(btnState);
+    const newQuantities = new Map(quantities);
+
+    newBtnState.set(product.id, false);
+    newQuantities.set(product.id, 1);
+
+    btnState = newBtnState;
+    quantities = newQuantities;
+
     try {
-      const quantity = quantities.get(product.id) || 1;
       const response = await fetch("/api/cart", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productId: product.id,
-          quantity,
+          quantity: 1,
           price: product.price,
         }),
       });
-      if (!response.ok) {
-        throw new Error("failed to add to cart");
-      }
-      btnState.set(product.id, false);
-      btnState = new Map(btnState);
-      quantities.set(product.id, 1);
-      quantities = new Map(quantities);
+      if (!response.ok) throw new Error("failed to add to cart");
+      await refreshCart();
     } catch (error) {
+      // Rollback UI if backend fails
+      const rollbackBtnState = new Map(btnState);
+      const rollbackQuantities = new Map(quantities);
+
+      rollbackBtnState.set(product.id, true);
+      rollbackQuantities.delete(product.id);
+
+      btnState = rollbackBtnState;
+      quantities = rollbackQuantities;
       console.error("Failed to add to cart", error);
     }
   }
 
+  async function updateQuantity(productId: number, change: number) {
+    const currentQty = quantities.get(productId) || 1;
+    const newQty = currentQty + change;
+    if (newQty < 0) return;
+
+    if (newQty === 0) {
+      // Optimistically update UI
+      const newBtnState = new Map(btnState);
+      const newQuantities = new Map(quantities);
+
+      newBtnState.set(productId, true);
+      newQuantities.set(productId, 1);
+
+      btnState = newBtnState;
+      quantities = newQuantities;
+
+      try {
+        await deleteFromCart(productId);
+        await refreshCart();
+      } catch (error) {
+        // Rollback UI if backend fails
+        const rollbackBtnState = new Map(btnState);
+        rollbackBtnState.set(productId, false);
+        btnState = rollbackBtnState;
+        console.error("Failed to delete from cart", error);
+      }
+      return;
+    }
+
+    // Optimistically update UI
+    const newQuantities = new Map(quantities);
+    newQuantities.set(productId, newQty);
+    quantities = newQuantities;
+
+    try {
+      const response = await fetch("/api/cart", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, quantity: newQty }),
+      });
+      if (!response.ok) throw new Error("failed to update quantity");
+      await refreshCart();
+    } catch (error) {
+      // Rollback UI if backend fails
+      const rollbackQuantities = new Map(quantities);
+      rollbackQuantities.set(productId, currentQty);
+      quantities = rollbackQuantities;
+      console.error("Failed to update quantity", error);
+    }
+  }
+
+  async function deleteFromCart(productId: number) {
+    const response = await fetch("/api/cart", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId, quantity: 0 }),
+    });
+    if (!response.ok) throw new Error("failed to delete from cart");
+  }
+
   $effect(() => {
-    getProducts();
+    refreshCart();
   });
 </script>
 
@@ -131,7 +181,7 @@
                 <div class="aspect-square overflow-hidden relative">
                   <img
                     class="w-full h-full object-cover"
-                    src={product.thumbnail}
+                    src={product.thumbnail || "/placeholder.svg"}
                     alt={product.description}
                   />
 
@@ -180,6 +230,3 @@
   <Carousel.Previous />
   <Carousel.Next />
 </Carousel.Root>
-
-<style>
-</style>

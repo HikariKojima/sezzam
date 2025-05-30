@@ -1,48 +1,20 @@
 <script lang="ts">
+  import { cartItems, cartTotal, itemsInCart } from "$lib/stores/cart.state";
   import { type Products, type CartProducts } from "$lib/server/db/schema";
   import SearchBar from "./headerComponents/searchBar.svelte";
   import { Truck } from "@lucide/svelte";
   import { Phone } from "@lucide/svelte";
+  import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
+  import DropdownMenuContent from "$lib/components/ui/dropdown-menu/dropdown-menu-content.svelte";
+  import DropdownMenuGroup from "$lib/components/ui/dropdown-menu/dropdown-menu-group.svelte";
 
-  let cartItems = $state<CartProducts[]>([]);
-  let itemsInCart = $state<Products[]>([]);
-  let cartTotal = $state<string>("0.00");
-
-  async function getItems(product: CartProducts) {
-    try {
-      const response = await fetch(`/api/products?id=${product.productId}`);
-      if (!response.ok) {
-        Error("Failed to fetch item");
-      }
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.log("error while fetching", error);
-      return null;
-    }
+  function cartEntryDisplay(item: Products, cartItemsArr: CartProducts[]) {
+    const cartEntry = cartItemsArr.find((ci) => ci.productId === item.id);
+    const quantity = cartEntry?.quantity || 1;
+    const price = Number(item.price);
+    const total = quantity * price;
+    return `${item.name} - ${quantity} x ${price} KM = ${total} KM`;
   }
-
-  async function getCart() {
-    try {
-      const response = await fetch("/api/cart");
-      if (!response.ok) {
-        throw new Error("Unable to fetch cart");
-      }
-      const data = await response.json();
-      cartItems = data.items;
-      cartTotal = data.cart?.totalAmount || "0.00";
-
-      const productPromises = cartItems.map((item) => getItems(item));
-      const products = await Promise.all(productPromises);
-      itemsInCart = products.filter((product) => product !== null);
-    } catch (error) {
-      console.error("Error fetching cart: ", error);
-    }
-  }
-
-  $effect(() => {
-    getCart();
-  });
 </script>
 
 <nav
@@ -60,20 +32,29 @@
         href="tel:061069798">061/069-798</a
       >
     </div>
-    <div class="basket-cnt flex items-center justify-center flex-row gap-1.5">
-      <p>Korpa</p>
-      <div class="flex items-center justify-center">
-        <Truck class="text-[rgb(236,88,0)]" />
-        {#if cartItems.length}
-          <span class="font-bold"
-            >{cartItems.length} <span>{cartTotal}</span></span
-          >
-        {/if}
-      </div>
-    </div>
+
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger>
+        <div
+          class="basket-cnt flex items-center justify-center flex-row gap-1.5"
+        >
+          <p>Korpa</p>
+          <Truck class="text-[rgb(236,88,0)]" />
+        </div>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content>
+        <DropdownMenu.Group>
+          {#if $itemsInCart.length === 0}
+            <DropdownMenu.Item>Vasa korpa je prazna</DropdownMenu.Item>
+          {:else}
+            {#each $itemsInCart as item}
+              <DropdownMenu.Item>
+                {cartEntryDisplay(item, $cartItems)}
+              </DropdownMenu.Item>
+            {/each}
+          {/if}
+        </DropdownMenu.Group>
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>
   </div>
 </nav>
-infoo
-{#each itemsInCart as item, i}
-  {item.name} /
-{/each}
