@@ -2,4 +2,4 @@
   const { data } = $props();
 </script>
 
-<h1>{data.product.data.id}</h1>
+<h1>{data.product.data.title}</h1>

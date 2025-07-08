@@ -72,7 +72,7 @@ export async function POST({ locals, request }: RequestEvent) {
       cartId = userCart[0].id;
     }
 
-    const cartItem = await db
+    await db
       .insert(cartProducts)
       .values({
         cartId,
@@ -82,7 +82,26 @@ export async function POST({ locals, request }: RequestEvent) {
       })
       .returning();
 
-    return json(cartItem);
+    const updatedItems = await db
+      .select()
+      .from(cartProducts)
+      .where(eq(cartProducts.cartId, cartId));
+
+    const newTotal = updatedItems
+      .reduce((sum, item) => sum + Number(item.price) * item.quantity, 0)
+      .toFixed(2);
+
+    await db
+      .update(cart)
+      .set({ totalAmount: newTotal, updatedAt: new Date() })
+      .where(eq(cart.id, cartId));
+
+    const updatedCart = await db.select().from(cart).where(eq(cart.id, cartId));
+
+    return json({
+      cart: updatedCart[0],
+      items: updatedItems,
+    });
   } catch (error) {
     console.error("Error adding product to cart:", error);
     return json({ error: "Failed to add product to cart" }, { status: 500 });
@@ -245,6 +264,6 @@ export async function PATCH({ locals, request }: RequestEvent) {
     });
   } catch (error) {
     console.log("Error updating cart:", error);
-    return json({ error: "Failed to update caert" }, { status: 500 });
+    return json({ error: "Failed to update cart" }, { status: 500 });
   }
 }

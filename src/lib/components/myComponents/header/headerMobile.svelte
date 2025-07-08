@@ -2,6 +2,7 @@
   import { cartItems, cartTotal, itemsInCart } from "$lib/stores/cart.state";
   import { type Products, type CartProducts } from "$lib/server/db/schema";
   import SearchBar from "./headerComponents/searchBar.svelte";
+  console.log(cartItems);
   import { Truck } from "@lucide/svelte";
   import { Phone } from "@lucide/svelte";
   import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
@@ -52,6 +53,12 @@
                 {cartEntryDisplay(item, $cartItems)}
               </DropdownMenu.Item>
             {/each}
+            <DropdownMenu.Separator />
+            <DropdownMenu.Separator />
+            <DropdownMenu.Item>Ukupno: {$cartTotal}</DropdownMenu.Item>
+            <DropdownMenu.Item
+              ><a href="/checkout">Naruci</a>
+            </DropdownMenu.Item>
           {/if}
         </DropdownMenu.Group>
       </DropdownMenu.Content>
